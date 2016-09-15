@@ -1,0 +1,9 @@
+*.d
+*.o
+*.map
+3dstex
+
+# KDevelop
+.kdev4/
+*.kdev4
+
