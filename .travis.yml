@@ -1,0 +1,17 @@
+os:
+  - linux
+
+language: cpp
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - g++-6
+    sources:
+      - ubuntu-toolchain-r-test
+
+script:
+  - export CXX=g++-6
+  - make

@@ -1,6 +1,5 @@
 TARGET = 3dstex
-CXX = g++
-LD  = $(CXX)
+LD = $(CXX)
 
 CPPFILES := $(wildcard src/*.cpp)
 OFILES   := $(CPPFILES:.cpp=.o)
