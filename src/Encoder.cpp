@@ -92,38 +92,35 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 	else if (m_formatUsed == RGBA5551)
 		for (i = 0; i < m_header.width * m_header.height; ++i)
 		{
-			u16 A = (*src++ > 0) ? 1 : 0;
-			u16 B = (*src++ >> 3) << 1;
-			u16 G = (*src++ >> 3) << 6;
-			u16 R = (*src++ >> 3) << 11;
+			u16 A = Convert8To1(*src++);
+			u16 B = Convert8To5(*src++) << 1;
+			u16 G = Convert8To5(*src++) << 6;
+			u16 R = Convert8To5(*src++) << 11;
 			*dest16++ = R | G | B | A;
 		}
 	else if (m_formatUsed == RGB565)
 		for (i = 0; i < m_header.width * m_header.height; ++i)
 		{
 			src++;
-			u16 B = *src++ >> 3;
-			u16 G = (*src++ >> 2) << 5;
-			u16 R = (*src++ >> 3) << 11;
+			u16 B = Convert8To5(*src++);
+			u16 G = Convert8To6(*src++) << 5;
+			u16 R = Convert8To5(*src++) << 11;
 			*dest16++ = R | G | B;
 		}
 	else if (m_formatUsed == RGBA4)
 		for (i = 0; i < m_header.width * m_header.height; ++i)
 		{
-			u16 A = *src++ >> 4;
-			u16 B = (*src++ >> 4) << 4;
-			u16 G = (*src++ >> 4) << 8;
-			u16 R = (*src++ >> 4) << 12;
+			u16 A = Convert8To4(*src++);
+			u16 B = Convert8To4(*src++) << 4;
+			u16 G = Convert8To4(*src++) << 8;
+			u16 R = Convert8To4(*src++) << 12;
 			*dest16++ = R | G | B | A;
 		}
 	else if (m_formatUsed == LA8)
 		for (i = 0; i < m_header.width * m_header.height; ++i)
 		{
 			*dest8++ = *src++;
-			u8 L = *src++ * 0.0722f;
-			L += *src++ * 0.7152f;
-			L += *src++ * 0.2126f;
-			*dest8++ = L;
+			*dest8++ = ProcessBGR8ToL(src);
 		}
 	else if (m_formatUsed == HILO8)
 		for (i = 0; i < m_header.width * m_header.height; ++i)
@@ -136,10 +133,7 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 		for (i = 0; i < m_header.width * m_header.height; ++i)
 		{
 			src++;
-			u8 L = *src++ * 0.0722f;
-			L += *src++ * 0.7152f;
-			L += *src++ * 0.2126f;
-			*dest8++ = L;
+			*dest8++ = ProcessBGR8ToL(src);
 		}
 	else if (m_formatUsed == A8)
 		for (i = 0; i < m_header.width * m_header.height; ++i)
@@ -151,23 +145,15 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 		for (i = 0; i < m_header.width * m_header.height; ++i)
 		{
 			u8 A = *src++;
-			u8 L = *src++ * 0.0722f;
-			L += *src++ * 0.7152f;
-			L += *src++ * 0.2126f;
+			u8 L = ProcessBGR8ToL(src);
 			*dest8++ = (A >> 4) | ((L >> 4) << 4);
 		}
 	else if (m_formatUsed == L4)
 		for (i = 0; i < m_header.width * m_header.height / 2; ++i)
 		{
-			u8 L1, L2;
-			src++;
-			L1 = *src++ * 0.0722f;
-			L1 += *src++ * 0.7152f;
-			L1 += *src++ * 0.2126f;
-			src++;
-			L2 = *src++ * 0.0722f;
-			L2 += *src++ * 0.7152f;
-			L2 += *src++ * 0.2126f;
+			// Pre-increment to skip alpha channel
+			u8 L1 = ProcessBGR8ToL(++src);
+			u8 L2 = ProcessBGR8ToL(++src);
 			*dest8++ = (L1 >> 4) | ((L2 >> 4) << 4);
 		}
 	else if (m_formatUsed == A4)

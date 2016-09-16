@@ -82,7 +82,7 @@ int nextPow2(int size)
 	return sizePOT;
 }
 
-// Grabbed from Citra Emulator (citra/src/video_core/utils.h)
+// From Citra Emulator (citra/src/video_core/utils.h)
 static inline u32 morton_interleave(u32 x, u32 y)
 {
 	u32 i = (x & 7) | ((y & 7) << 8); // ---- -210
@@ -92,12 +92,14 @@ static inline u32 morton_interleave(u32 x, u32 y)
 	return i;
 }
 
-//Grabbed from Citra Emulator (citra/src/video_core/utils.h)
+// From Citra Emulator (citra/src/video_core/utils.h)
 static inline u32 get_morton_offset(u32 x, u32 y, u32 bytes_per_pixel)
 {
-	u32 i = morton_interleave(x, y);
-	u32 offset = (x & ~7) * 8;
-	return (i + offset) * bytes_per_pixel;
+	const u32 block_height = 8;
+    const u32 coarse_x = x & ~7;
+    u32 i = morton_interleave(x, y);
+    const u32 offset = coarse_x * block_height;
+    return (i + offset) * bytes_per_pixel;
 }
 
 void tileData(u8* dest, const u8* source, u32 x, u32 y, u32 src_w, u32 src_h, u32 dest_w, u32 dest_h)
