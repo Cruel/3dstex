@@ -20,7 +20,7 @@ void printUsage(const char* progName)
 {
 	fprintf(stderr,
 		"\nUsage:\n"
-		"  %s -o <format> [options] files ...\n\n"
+		"  %s [options] files ...\n\n"
 		"Options:\n"
 		"  -r           Raw output without header. Header is added by default.\n"
 		"  -p           Print info of input files instead of encoding them.\n"
@@ -32,11 +32,12 @@ void printUsage(const char* progName)
 		"                 " CYAN "3" RESET "  - High quality   (slow)\n"
 		"  -i <format>  Input format type. Only needed when input files have no header.\n"
 		"               Possible types: " CYAN "rgba8, rgb8, rgba5551, rgb565, rgba4, la8, hilo8,\n"
-		"               l8, a8, la4, a4, etc1, etc1a4" RESET ".\n"
+		"               l8, a8, la4, l4, a4, etc1, etc1a4" RESET ".\n"
 		"  -o <format>  Output format type. Can be any of the above input types with some\n"
 		"               additional special types:\n"
-		"                 " CYAN "auto-etc1" RESET "  - Uses ETC1 when input has no alpha data,\n"
-		"                              otherwise uses ETC1A4.\n"
+		"                 " CYAN "auto-etc1" RESET "  - ETC1 when input has no alpha, otherwise ETC1A4.\n"
+		"                 " CYAN "auto-l8" RESET "    - L8 when input has no alpha, otherwise LA8.\n"
+		"                 " CYAN "auto-l4" RESET "    - L4 when input has no alpha, otherwise LA4.\n"
 		, progName);
 }
 

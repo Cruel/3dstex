@@ -36,6 +36,10 @@ void Encoder::processDecodedData(const std::vector<u8> &data, int width, int hei
 	// Check for special formats and set appropriate one
 	if (m_formatRequested == AutoETC1)
 		m_formatUsed = m_hasAlpha ? ETC1A4 : ETC1;
+	else if (m_formatRequested == AutoL8)
+		m_formatUsed = m_hasAlpha ? LA8 : L8;
+	else if (m_formatRequested == AutoL4)
+		m_formatUsed = m_hasAlpha ? LA4 : L4;
 	
 	m_header.format = m_formatUsed;
 	m_encodedData.resize(width * height * bitsPerPixel(m_formatUsed) / 8);

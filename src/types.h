@@ -36,6 +36,8 @@ enum PixelFormat
 	// Special types.
 	DefaultFormat,
 	AutoETC1,
+	AutoL8,
+	AutoL4,
 };
 
 typedef struct
