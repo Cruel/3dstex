@@ -28,6 +28,7 @@ enum PixelFormat
 	L8,
 	A8,
 	LA4,
+	L4,
 	A4,
 	ETC1,
 	ETC1A4,

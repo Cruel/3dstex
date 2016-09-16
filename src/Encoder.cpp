@@ -57,14 +57,14 @@ void Encoder::processDecodedData(const Decoder& decoder)
   	);
 }
 
-void Encoder::encode(const std::vector<u8> &data)
+void Encoder::encode(const std::vector<u8> &decodedData)
 {
 
 }
 
-void Encoder::encodeETC1(const std::vector<u8> &data)
+void Encoder::encodeETC1(const std::vector<u8> &decodedData)
 {
-	u8 *ptr = m_encodedData.data();
+	u8 *ptrOut = m_encodedData.data();
 	
 	rg_etc1::etc1_pack_params params;
 	params.m_quality = static_cast<rg_etc1::etc1_quality>(m_qualityETC1 - 1);
@@ -95,15 +95,15 @@ void Encoder::encodeETC1(const std::vector<u8> &data)
 								else if (y + i + yy >= m_header.heightOriginal)
 									color = 0x00FFFFFF;
 								else
-									color = data[((m_header.height - 1 - y - i - yy) * m_header.widthOriginal) + x + j + xx];
+									color = decodedData[((m_header.height - 1 - y - i - yy) * m_header.widthOriginal) + x + j + xx];
 								u32 a = color >> 24;
 								a >>= 4;
 								block |= (u64)a << (iiii * 4);
 								iiii++;
 							}
 						}
-						std::memcpy(ptr, &block, 8);
-						ptr += 8;
+						std::memcpy(ptrOut, &block, 8);
+						ptrOut += 8;
 					}
 
 					for (int yy = 0; yy < 4; yy++)
@@ -117,7 +117,7 @@ void Encoder::encodeETC1(const std::vector<u8> &data)
 								pixels[yy * 4 + xx] = 0;
 							else
 							{
-								u8 *d = &m_encodedData[(((m_header.height - 1 - y - i - yy) * m_header.widthOriginal) + x + j + xx) * 4];
+								const u8 *d = &decodedData[(((m_header.height - 1 - y - i - yy) * m_header.widthOriginal) + x + j + xx) * 4];
 								u8 *p = (u8*)&pixels[yy * 4 + xx];
 								p[3] = 255;
 								p[2] = d[2];
@@ -130,8 +130,8 @@ void Encoder::encodeETC1(const std::vector<u8> &data)
 					// TODO: Add threading to block packing
 					rg_etc1::pack_etc1_block(&block, pixels, params);
 					block = __builtin_bswap64(block);
-					std::memcpy(ptr, &block, 8);
-					ptr += 8;
+					std::memcpy(ptrOut, &block, 8);
+					ptrOut += 8;
 				}
 			}
 		}
