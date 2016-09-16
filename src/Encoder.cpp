@@ -59,7 +59,122 @@ void Encoder::processDecodedData(const Decoder& decoder)
 
 void Encoder::encode(const std::vector<u8> &decodedData)
 {
+	// Get the tiled data before converting color format.
+	std::vector<u8> data;
+	data.resize(decodedData.size());
+	tileData(data.data(), decodedData.data(), 0, 0,
+	         m_header.width, m_header.height, m_header.width, m_header.height);
+	
+	u8 *src = data.data();
+	u8 *dest8 = m_encodedData.data();
+	u16 *dest16 = reinterpret_cast<u16*>(m_encodedData.data());
+	
+	if (m_formatUsed == RGBA8)
+	{
+		m_encodedData = data;
+		return;
+	}
 
+	// Loop through all pixels and convert them
+	int i;
+	if (m_formatUsed == RGB8)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			src++;
+			*dest8++ = *src++;
+			*dest8++ = *src++;
+			*dest8++ = *src++;
+		}
+	else if (m_formatUsed == RGBA5551)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			u16 A = (*src++ > 0) ? 1 : 0;
+			u16 B = (*src++ >> 3) << 1;
+			u16 G = (*src++ >> 3) << 6;
+			u16 R = (*src++ >> 3) << 11;
+			*dest16++ = R | G | B | A;
+		}
+	else if (m_formatUsed == RGB565)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			src++;
+			u16 B = *src++ >> 3;
+			u16 G = (*src++ >> 2) << 5;
+			u16 R = (*src++ >> 3) << 11;
+			*dest16++ = R | G | B;
+		}
+	else if (m_formatUsed == RGBA4)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			u16 A = *src++ >> 4;
+			u16 B = (*src++ >> 4) << 4;
+			u16 G = (*src++ >> 4) << 8;
+			u16 R = (*src++ >> 4) << 12;
+			*dest16++ = R | G | B | A;
+		}
+	else if (m_formatUsed == LA8)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			*dest8++ = *src++;
+			u8 L = *src++ * 0.0722f;
+			L += *src++ * 0.7152f;
+			L += *src++ * 0.2126f;
+			*dest8++ = L;
+		}
+	else if (m_formatUsed == HILO8)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			src += 2;
+			*dest8++ = *src++;
+			*dest8++ = *src++;
+		}
+	else if (m_formatUsed == L8)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			src++;
+			u8 L = *src++ * 0.0722f;
+			L += *src++ * 0.7152f;
+			L += *src++ * 0.2126f;
+			*dest8++ = L;
+		}
+	else if (m_formatUsed == A8)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			*dest8++ = *src;
+			src += 4;
+		}
+	else if (m_formatUsed == LA4)
+		for (i = 0; i < m_header.width * m_header.height; ++i)
+		{
+			u8 A = *src++;
+			u8 L = *src++ * 0.0722f;
+			L += *src++ * 0.7152f;
+			L += *src++ * 0.2126f;
+			*dest8++ = (A >> 4) | ((L >> 4) << 4);
+		}
+	else if (m_formatUsed == L4)
+		for (i = 0; i < m_header.width * m_header.height / 2; ++i)
+		{
+			u8 L1, L2;
+			src++;
+			L1 = *src++ * 0.0722f;
+			L1 += *src++ * 0.7152f;
+			L1 += *src++ * 0.2126f;
+			src++;
+			L2 = *src++ * 0.0722f;
+			L2 += *src++ * 0.7152f;
+			L2 += *src++ * 0.2126f;
+			*dest8++ = (L1 >> 4) | ((L2 >> 4) << 4);
+		}
+	else if (m_formatUsed == A4)
+		for (i = 0; i < m_header.width * m_header.height / 2; ++i)
+		{
+			u8 lo4 = *src >> 4;
+			src += 4;
+			u8 hi4 = (*src >> 4) << 4;
+			src += 4;
+			*dest8++ = hi4 | lo4;
+		}
 }
 
 void Encoder::encodeETC1(const std::vector<u8> &decodedData)
