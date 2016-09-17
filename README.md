@@ -1,11 +1,9 @@
 # 3dstex
-Texture conversion utility for Nintendo 3DS homebrew.
-
-------------
+**Texture conversion utility for Nintendo 3DS homebrew.**
 
 ```
 Usage:
-  ./3dstex [options] files ...
+  3dstex [options] files ...
 
 Options:
   -r           Raw output without header. Header is added by default.
@@ -26,3 +24,48 @@ Options:
                  auto-l8    - L8 when input has no alpha, otherwise LA8.
                  auto-l4    - L4 when input has no alpha, otherwise LA4.
 ```
+
+## Examples
+
+Convert all PNGs in current directory to ETC1(A4):
+```
+$ 3dstex -o auto-etc1 *.png
+```
+
+Convert image to ETC1 in `output` directory using max quality compression (3):
+```
+$ 3dstex -o etc1 -d output -c 3 image.png
+```
+
+Convert image to raw (no header) LA8:
+```
+$ 3dstex image.jpg -ro la8
+```
+
+Convert ETC1A4 texture to RGBA4:
+```
+$ 3dstex texture.bin -i etc1a4 -o rgba4
+```
+
+## Header
+By default, output has a 9 byte header for convenience when reading it. This can be disabled with the `-r` flag.
+
+The header contains original input dimensions in the case that you want to convert and use images of arbitrary (NPOT) dimensions.
+
+Header is defined as the following:
+```c
+typedef struct
+{
+	u8 format;          //< Format matching ctrulib enum GPU_TEXCOLOR
+	u16 width;          //< Width (original width to next power of 2)
+	u16 height;         //< Height (original height to next power of 2)
+	u16 widthOriginal;  //< Width of original input
+	u16 heightOriginal; //< Height of original input
+} __attribute__((packed)) Header;
+```
+
+## Input
+
+Currently supports PNG and JPEG input (using stb_image) with some [minor restrictions](https://github.com/nothings/stb/blob/master/stb_image.h#L23-L24).
+
+You can use previously converted textures as input too, but if they're raw (with no header), you need to specify the format using the `-i` flag.
