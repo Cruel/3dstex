@@ -3,6 +3,7 @@
 #include "types.h"
 #include <memory>
 #include <vector>
+#include "rg_etc1.h"
 
 class Decoder;
 
@@ -20,13 +21,16 @@ public:
 private:
 	void encode(const std::vector<u8> &decodedData);
 	void encodeETC1(const std::vector<u8> &decodedData);
+	void encodeETC1Block(int blockX, int blockY, const u8 *decodedData, u8 *ptrOut);
 	
 private:
 	PixelFormat m_formatRequested; //< User provided format, could be special format.
-	PixelFormat m_formatUsed;      //< User provided format, could be special format.
+	PixelFormat m_formatUsed;      //< Format used for encoding.
 	std::vector<u8> m_encodedData;
 	
-	int m_qualityETC1;
 	Header m_header; //< Header to use in output, if requested
 	bool m_hasAlpha;
+	
+	int m_qualityETC1;
+	rg_etc1::etc1_pack_params m_etc1params;
 };
