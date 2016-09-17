@@ -187,7 +187,12 @@ int main(int argc, char **argv)
 			if (outputFileName == fileName)
 				outputFileName = fileNameNoExt + "." + stringFromFormat(encoder.getEncodedFormat()) + ext;
 			encoder.saveToFile(outputFilePath, options.useHeader);
-			std::cout << "[" CYAN << stringFromFormat(encoder.getEncodedFormat()) << RESET "] " GREEN << outputFilePath << RESET << std::endl;
+			
+			printf("[" CYAN "%s" RESET " -> " CYAN "%s" RESET "] " GREEN "%s\n" RESET,
+			       stringFromFormat(decoder.getPixelFormat()).c_str(),
+				   stringFromFormat(encoder.getEncodedFormat()).c_str(),
+				   outputFilePath.c_str()
+			);
 		}
 		catch(int e)
 		{
