@@ -3,9 +3,9 @@ LD = $(CXX)
 
 CPPFILES := $(wildcard src/*.cpp)
 OFILES   := $(CPPFILES:.cpp=.o)
-DFILES   := $(OFILES:.o=.d)
+DEPENDS  := $(OFILES:.o=.d)
 
-CXXFLAGS = -g -O3 -Wall -Wno-misleading-indentation
+CXXFLAGS = -g -O3 -std=c++11 -Wall -pedantic -Wno-misleading-indentation
 LDFLAGS  = -Wall -Wl,-Map,$(TARGET).map
 LIBS     = -lm
 
@@ -22,6 +22,6 @@ $(TARGET): $(OFILES)
 	@$(LD) $(OFILES) $(LDFLAGS) $(LIBS) -o $@
 
 clean:
-	@rm $(OFILES) $(DFILES) $(TARGET)
+	@rm $(OFILES) $(DEPENDS) $(TARGET)
 
--include $(DFILES)
+-include $(DEPENDS)
