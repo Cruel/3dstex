@@ -35,6 +35,7 @@ enum PixelFormat
 
 	// Special types.
 	DefaultFormat,
+	PNG,
 	AutoETC1,
 	AutoL8,
 	AutoL4,

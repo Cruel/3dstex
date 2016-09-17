@@ -35,6 +35,7 @@ void printUsage(const char* progName)
 		"               l8, a8, la4, l4, a4, etc1, etc1a4" RESET ".\n"
 		"  -o <format>  Output format type. Can be any of the above input types with some\n"
 		"               additional special types:\n"
+		"                 " CYAN "png" RESET "        - PNG output, disabling alpha channel if not used.\n"
 		"                 " CYAN "auto-etc1" RESET "  - ETC1 when input has no alpha, otherwise ETC1A4.\n"
 		"                 " CYAN "auto-l8" RESET "    - L8 when input has no alpha, otherwise LA8.\n"
 		"                 " CYAN "auto-l4" RESET "    - L4 when input has no alpha, otherwise LA4.\n"
@@ -49,7 +50,9 @@ int main(int argc, char **argv)
 	// Default options
 	Options options;
 	options.useHeader = true;
-	options.threadCount = std::thread::hardware_concurrency() ? : 4;
+	options.threadCount = std::thread::hardware_concurrency();
+	if (!options.threadCount)
+		options.threadCount = 4;
 	options.etc1quality = 2;
 	options.formatInput = DefaultFormat;
 	options.formatOutput = DefaultFormat;
@@ -171,9 +174,8 @@ int main(int argc, char **argv)
 			fileNameNoExt = fileName.substr(0, lastDot);
 		
 		// Determine output file name
-		std::string outputFileName = fileNameNoExt + ".bin";
-		if (outputFileName == fileName)
-			outputFileName = fileNameNoExt + ".out.bin";
+		std::string ext = (options.formatOutput == PNG) ? ".png" : ".bin";
+		std::string outputFileName = fileNameNoExt + ext;
 		
 		try
 		{
@@ -182,6 +184,8 @@ int main(int argc, char **argv)
 			
 			Decoder decoder(filePath, options.formatInput);
 			encoder.processDecodedData(decoder);
+			if (outputFileName == fileName)
+				outputFileName = fileNameNoExt + "." + stringFromFormat(encoder.getEncodedFormat()) + ext;
 			encoder.saveToFile(outputFilePath, options.useHeader);
 			std::cout << "[" CYAN << stringFromFormat(encoder.getEncodedFormat()) << RESET "] " GREEN << outputFilePath << RESET << std::endl;
 		}

@@ -16,6 +16,7 @@ PixelFormat formatFromString(const std::string &formatStr)
 	else if (formatStr == "a4")        return A4;
 	else if (formatStr == "etc1")      return ETC1;
 	else if (formatStr == "etc1a4")    return ETC1A4;
+	else if (formatStr == "png")       return PNG;
 	else if (formatStr == "auto-etc1") return AutoETC1;
 	else if (formatStr == "auto-l8")   return AutoL8;
 	else if (formatStr == "auto-l4")   return AutoL4;
@@ -40,6 +41,7 @@ std::string stringFromFormat(PixelFormat format)
 		case A4:       return "a4";
 		case ETC1:     return "etc1";
 		case ETC1A4:   return "etc1a4";
+		case PNG:      return "png";
 		case AutoETC1: return "auto-etc1";
 		case AutoL8:   return "auto-l8";
 		case AutoL4:   return "auto-l4";

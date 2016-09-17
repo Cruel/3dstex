@@ -1,5 +1,7 @@
 #include "Encoder.h"
 #include "Decoder.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 #include "util.h"
 #include <fstream>
 #include <cstring>
@@ -15,6 +17,13 @@ Encoder::Encoder(PixelFormat format, int qualityETC1)
 
 void Encoder::saveToFile(const std::string &filePath, bool useHeader)
 {
+	if (m_formatRequested == PNG)
+	{
+		stbi_write_png(filePath.c_str(), m_header.widthOriginal, m_header.heightOriginal,
+		               4, m_encodedData.data(), 0);
+		return;
+	}
+	
 	std::ofstream file(filePath, std::ios::binary | std::ios::trunc);
 	if (file.is_open())
 	{
@@ -39,6 +48,10 @@ void Encoder::processDecodedData(const std::vector<u8> &data, int width, int hei
 		m_formatUsed = m_hasAlpha ? LA8 : L8;
 	else if (m_formatRequested == AutoL4)
 		m_formatUsed = m_hasAlpha ? LA4 : L4;
+	else if (m_formatRequested == PNG) {
+		m_encodedData = data;
+		return;
+	}
 	
 	m_header.format = m_formatUsed;
 	m_encodedData.resize(m_header.width * m_header.height * bitsPerPixel(m_formatUsed) / 8);
@@ -172,8 +185,10 @@ void Encoder::encodeETC1(const std::vector<u8> &decodedData)
 	m_etc1params.m_quality = static_cast<rg_etc1::etc1_quality>(m_qualityETC1 - 1);
 	rg_etc1::pack_etc1_block_init();
 	
+	// Loop through 8x8 blocks
 	for (int y = 0; y < m_header.height; y += 8)
 		for (int x = 0; x < m_header.width; x += 8)
+			// Loop through the four 4x4 sub-blocks that will be compressed
 			for (int i = 0; i < 8; i += 4)
 				for (int j = 0; j < 8; j += 4)
 				{
@@ -212,7 +227,7 @@ void Encoder::encodeETC1Block(int blockX, int blockY, const u8* decodedData, u8*
 				if (posX < m_header.widthOriginal && posY < m_header.heightOriginal)
 					alpha = decodedData[(posY * m_header.widthOriginal + posX) * 4 + 3];
 				alpha >>= 4;
-				block |= (u64)alpha << (alphaCount * 4);
+				block |= static_cast<u64>(alpha) << (alphaCount * 4);
 				alphaCount++;
 			}	
 		}
