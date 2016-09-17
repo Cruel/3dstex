@@ -49,7 +49,7 @@ std::string stringFromFormat(PixelFormat format)
 	}
 }
 
-int bitsPerPixel(PixelFormat format)
+u32 bitsPerPixel(PixelFormat format)
 {
 	switch (format) {
 		case RGBA8:
@@ -76,9 +76,9 @@ int bitsPerPixel(PixelFormat format)
 	}
 }
 
-int nextPow2(int size)
+u32 nextPow2(u32 size)
 {
-	int sizePOT = 1;
+	u32 sizePOT = 1;
 	while (sizePOT < size)
 		sizePOT *= 2;
 	return sizePOT;
@@ -126,14 +126,16 @@ void untileData(u8* dest, const u8* source, u32 x, u32 y, u32 src_w, u32 src_h, 
 	u32 i, j;
 	for (j = 0; j < src_h; j++) {
 		for (i = 0; i < src_w; i++) {
+			if (i >= dest_w || j >= dest_h)
+				continue;
 
-			int pos_y = (dest_h - 1 - j - y);
+			int pos_y = (src_h - 1 - j - y);
 
 			u32 coarse_y = pos_y & ~7;
-			u32 src_offset = get_morton_offset(i+x, pos_y, 4) + coarse_y * dest_w * 4;
+			u32 src_offset = get_morton_offset(i+x, pos_y, 4) + coarse_y * src_w * 4;
 
 			u32 v = *(u32 *)(source + src_offset);
-			((u32 *)dest)[i + j*src_w] = __builtin_bswap32(v);
+			((u32 *)dest)[i + j*dest_w] = __builtin_bswap32(v);
 		}
 	}
 }
