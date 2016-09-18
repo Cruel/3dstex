@@ -1,17 +1,41 @@
-os:
-  - linux
-
 language: cpp
+os:
+- linux
+- osx
+compiler:
+- gcc
+env:
+- CXXFLAGS=-m64;RELEASE_TAG=x64
+- CXXFLAGS=-m32;RELEASE_TAG=x86
 
 sudo: false
 
 addons:
   apt:
-    packages:
-      - g++-6
     sources:
-      - ubuntu-toolchain-r-test
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-6
+    - g++-6-multilib
+    - gcc-6-multilib
+    - gcc-multilib
+    
+before_install:
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX=g++-6 ; fi
 
 script:
-  - export CXX=g++-6
-  - make
+- make -j4
+
+before_deploy:
+- export RELEASE_FILENAME=3dstex-$TRAVIS_OS_NAME-$RELEASE_TAG
+- cp 3dstex $RELEASE_FILENAME
+- strip $RELEASE_FILENAME
+
+deploy:
+  provider: releases
+  api_key:
+    secure: pdwVhicpCyQ1deoLstgvOFQlGkxV1hSBei8VKDXbiO8SNBz/3Y/VKsvSOP9uVA2veSR+3RvE9aW7Vy54z4S6lha6ZKio7elAgyDEtvLRrjYFfm9U0wx5P65nV2FFevFkE/Eo2fWsPfI3765A1xEvtmkUZsd2H4nlWyVYI5NOZ44w81C6k8n4cCUNkyZd3Jw4yI/7NByXlGrzjGWB3WmvTxXwzwj2/MVkBWJCY6BjBZO0ZZCiLLvlBwwFsK+uxDGZoS/iI2U98KzXXNj79BaG7LQrGrhXhkdC4Udz/oFx4jXD/Z1e9sCaw8ZwPloIuKJafokICPqqQK39Mp96IfbmQD8Tw2BvF7eLd5IcKwNhHzUbecGT1yjJlbR9QQ9nW0F5/erN0FYFa6PN9WFNkuNqYEKTY03z9xLj+RxpYJgTpVMEa1ef/9lL0FfqrPG5RlBEm2tidbftPLuXWipunKVanYk0wIr+NszCkTzWzV4R7aV7hU25hi5HGAZSnQ1i5ETOkUXj5gXjrklCw9EarJNM2RrX+OcJN4fvJyS1XgRO9onTxqt7eZTSYjAizRwsrMPxjM7YEbKHbnJxVAOqPFWKd1TK7fKnXWVusofo4ALydWRCk6Ys9Of9HmsXok0OKvlIobqNn3o/qLAGmHARbKQS4W4YazCLDhvLthx3Zs05yPM=
+  file: $RELEASE_FILENAME
+  skip_cleanup: true
+  on:
+    tags: true
