@@ -25,7 +25,7 @@ bool Decoder::loadImageFile(const std::string &filePath)
 	if (data)
 	{
 		m_decodedData.assign(data, data + m_width * m_height * 4);
-		m_hasAlpha = (bitsPerPixel == 4 && !isOpaque());
+		m_hasAlpha = !isOpaque();
 		stbi_image_free(data);
 		return true;
 	}
@@ -51,7 +51,7 @@ bool Decoder::loadTextureFile(const std::string &filePath)
 		m_format = static_cast<PixelFormat>(m_header.format);
 		m_width = m_header.widthOriginal;
 		m_height = m_header.heightOriginal;
-		if (m_header.width * m_header.height * bitsPerPixel(m_format) / 8 != size)
+		if (size != m_header.width * m_header.height * bitsPerPixel(m_format) / 8)
 			return false;
 		
 		std::vector<u8> data;
