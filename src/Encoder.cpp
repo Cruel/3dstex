@@ -212,7 +212,7 @@ void Encoder::encodeETC1Block(int blockX, int blockY, const u8* decodedData, u8*
 		for (int x = 0; x < 4; x++)
 		{
 			int posX = blockX + x;
-			int posY = m_header.width - 1 - (blockY + y);
+			int posY = m_header.height - 1 - (blockY + y);
 			
 			// Make sure pixel is in bounds of original dimensions
 			if (posX < m_header.widthOriginal && posY < m_header.heightOriginal)
@@ -222,7 +222,7 @@ void Encoder::encodeETC1Block(int blockX, int blockY, const u8* decodedData, u8*
 			{
 				// Invert x/y axis for alpha block order
 				posX = blockX + y;
-				posY = m_header.width - 1 - (blockY + x);
+				posY = m_header.height - 1 - (blockY + x);
 				alpha = 0;
 				if (posX < m_header.widthOriginal && posY < m_header.heightOriginal)
 					alpha = decodedData[(posY * m_header.widthOriginal + posX) * 4 + 3];
