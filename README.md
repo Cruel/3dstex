@@ -1,6 +1,8 @@
 # 3dstex
 **Texture conversion utility for Nintendo 3DS homebrew.**
 
+[![Travis-CI](https://travis-ci.org/Cruel/3dstex.svg?branch=master)](https://travis-ci.org/Cruel/3dstex) [![AppVeyor](https://ci.appveyor.com/api/projects/status/p6fiuogqq59byg0i?svg=true)](https://ci.appveyor.com/project/Cruel/3dstex) [![Codecov](https://img.shields.io/codecov/c/github/Cruel/3dstex/master.svg?maxAge=86400)](https://codecov.io/gh/Cruel/3dstex)
+
 ```
 Usage:
   3dstex [options] files ...
