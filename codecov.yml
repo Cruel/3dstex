@@ -1,0 +1,4 @@
+coverage:
+  ignore:
+  - src/rg_etc1.*
+  - src/stb_image*
