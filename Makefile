@@ -1,30 +1,36 @@
 TARGET = 3dstex
 LD = $(CXX)
 
+BUILD_DIR:= build
 CPPFILES := $(wildcard src/*.cpp)
-OFILES   := $(CPPFILES:.cpp=.o)
-DEPENDS  := $(OFILES:.o=.d)
+OFILES   := $(patsubst src/%,$(BUILD_DIR)/%,$(CPPFILES:.cpp=.o))
+DEPENDS  := $(wildcard $(BUILD_DIR)/*.d)
 
 CXXFLAGS := $(CXXFLAGS) -g -O3 -std=c++11 -Wall -pedantic -Wno-misleading-indentation
 LDFLAGS  := $(LDFLAGS) $(CXXFLAGS) -Wall
 LIBS     := -lm
 
-.PHONY: all clean run test $(TARGET)
+.PHONY: all clean test $(TARGET)
 
 all: $(TARGET)
 
-%.o: %.cpp
+$(OFILES): | dir
+
+dir:
+	@[ -d $(BUILD_DIR) ] || mkdir $(BUILD_DIR)
+
+$(BUILD_DIR)/%.o: src/%.cpp
 	@echo Compiling $<
-	$(CXX) -MMD -MP -MF $*.d $(CXXFLAGS) -c $< -o $@
+	$(CXX) -MMD -MP -MF $(BUILD_DIR)/$*.d $(CXXFLAGS) -c $< -o $@
 
 $(TARGET): $(OFILES)
 	@echo Linking $(TARGET) ...
 	$(LD) $(OFILES) $(LDFLAGS) $(LIBS) -o $@
 
 test:
-	@echo Running tests...
+	@$(MAKE) -C test
 	
 clean:
-	@rm $(OFILES) $(DEPENDS) $(TARGET)
+	@rm -rf $(BUILD_DIR) $(TARGET)
 
 -include $(DEPENDS)

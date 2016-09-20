@@ -26,6 +26,10 @@ before_install:
 script:
 - make -j4
 
+after_success:
+- make test
+- bash <(curl -s https://codecov.io/bash) -x gcov-6
+
 before_deploy:
 - export RELEASE_FILENAME=3dstex-$TRAVIS_OS_NAME-$RELEASE_TAG
 - cp 3dstex $RELEASE_FILENAME

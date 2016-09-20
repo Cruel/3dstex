@@ -18,7 +18,7 @@
 
 void printUsage(const char* progName)
 {
-	fprintf(stderr,
+	printf(
 		"\nUsage:\n"
 		"  %s [options] files ...\n\n"
 		"Options:\n"
