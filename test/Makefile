@@ -29,6 +29,6 @@ run: $(TARGET)
 	@bash -e test.sh
 	
 clean:
-	@rm -rf $(BUILD_DIR) $(TARGET)
+	@rm -rf $(BUILD_DIR) $(TARGET) *.bin *.png
 
 -include $(DEPENDS)
