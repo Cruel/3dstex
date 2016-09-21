@@ -20,11 +20,9 @@ dir:
 	@[ -d $(BUILD_DIR) ] || mkdir $(BUILD_DIR)
 
 $(BUILD_DIR)/%.o: src/%.cpp
-	@echo Compiling $<
 	$(CXX) -MMD -MP -MF $(BUILD_DIR)/$*.d $(CXXFLAGS) -c $< -o $@
 
 $(TARGET): $(OFILES)
-	@echo Linking $(TARGET) ...
 	$(LD) $(OFILES) $(LDFLAGS) $(LIBS) -o $@
 
 test:
@@ -32,5 +30,6 @@ test:
 	
 clean:
 	@rm -rf $(BUILD_DIR) $(TARGET)
+	@$(MAKE) -C test clean
 
 -include $(DEPENDS)
