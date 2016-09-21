@@ -49,13 +49,3 @@ typedef struct
 	u16 widthOriginal;  //< Width of original input
 	u16 heightOriginal; //< Height of original input
 } Header;
-
-typedef struct
-{
-	PixelFormat formatInput;
-	PixelFormat formatOutput;
-	bool useHeader;
-	int etc1quality;
-	int threadCount;
-	std::string outputDir;
-} Options;

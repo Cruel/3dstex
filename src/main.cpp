@@ -20,11 +20,13 @@ void printUsage(const char* progName)
 {
 	printf(
 		"\nUsage:\n"
-		"  %s [options] files ...\n\n"
+		"  %s [options] input output\n"
+		"  %s -b [options] files ...\n\n"
 		"Options:\n"
 		"  -r           Raw output without header. Header is added by default.\n"
 		"  -p           Print info of input files instead of encoding them.\n"
 		"  -h           Print this help information.\n"
+		"  -b           Batch mode.\n"
 		"  -d <dir>     Directory to output files. Defaults to directory of inputs.\n"
 		"  -c <level>   Quality level for ETC1 compression:\n"
 		"                 " CYAN "1" RESET "  - Low quality    (fast)\n"
@@ -39,7 +41,7 @@ void printUsage(const char* progName)
 		"                 " CYAN "auto-etc1" RESET "  - ETC1 when input has no alpha, otherwise ETC1A4.\n"
 		"                 " CYAN "auto-l8" RESET "    - L8 when input has no alpha, otherwise LA8.\n"
 		"                 " CYAN "auto-l4" RESET "    - L4 when input has no alpha, otherwise LA4.\n"
-		, progName);
+		, progName, progName);
 }
 
 int main(int argc, char **argv)
@@ -48,25 +50,27 @@ int main(int argc, char **argv)
 	bool optsInvalid = false;
 
 	// Default options
-	Options options;
-	options.useHeader = true;
-	options.threadCount = std::thread::hardware_concurrency();
-	if (!options.threadCount)
-		options.threadCount = 4;
-	options.etc1quality = 2;
-	options.formatInput = DefaultFormat;
-	options.formatOutput = DefaultFormat;
+	bool useHeader = true;
 	bool printInfo = false;
+	bool batchMode = false;
+	std::string outputDir;
+	PixelFormat formatInput = DefaultFormat;
+	PixelFormat formatOutput = DefaultFormat;
+	int etc1quality = 2;
+	int threadCount = std::thread::hardware_concurrency();
+	if (!threadCount)
+		threadCount = 4;
 
+	// Parse options
 	while ((opt = getopt(argc, argv, "rphd:c:i:o:")) != -1)
 	{
 		 switch (opt)
 		 {
 			// Use raw output
 			case 'r':
-				options.useHeader = false;
+				useHeader = false;
 				break;
-			// Use raw output
+			// Print file info
 			case 'p':
 				printInfo = true;
 				break;
@@ -74,24 +78,28 @@ int main(int argc, char **argv)
 			case 'h':
 				printUsage(argv[0]);
 				return 0;
+			// Batch mode enable
+			case 'b':
+				batchMode = true;
+				break;
 			// Use different directory for output
 			case 'd':
 				struct stat st;
-				options.outputDir = optarg;
-				if ((stat(options.outputDir.c_str(), &st) != 0) || !(st.st_mode & S_IFDIR))
+				outputDir = optarg;
+				if ((stat(outputDir.c_str(), &st) != 0) || !(st.st_mode & S_IFDIR))
 				{
-					PRINT_ERROR(options.outputDir << " - Not found or not valid directory.");
+					PRINT_ERROR(outputDir << " - Not found or not valid directory.");
 					return 1;
 				}
-				if (options.outputDir.back() != PATH_SEPARATOR)
-					options.outputDir += PATH_SEPARATOR;
+				if (outputDir.back() != PATH_SEPARATOR)
+					outputDir += PATH_SEPARATOR;
 				break;
 			// ETC1 compression level
 			case 'c':
 				try
 				{
-					options.etc1quality = std::stoi(optarg, nullptr, 10);
-					if (options.etc1quality < 0 || options.etc1quality > 3)
+					etc1quality = std::stoi(optarg, nullptr, 10);
+					if (etc1quality < 0 || etc1quality > 3)
 						throw;
 				}
 				catch (int e)
@@ -102,20 +110,20 @@ int main(int argc, char **argv)
 				break;
 			// Define format for input file(s)
 			case 'i':
-				options.formatInput = formatFromString(optarg);
-				if (options.formatInput == DefaultFormat ||
-					options.formatInput == AutoETC1)
+				formatInput = formatFromString(optarg);
+				if (formatInput == DefaultFormat ||
+					formatInput == AutoETC1)
 				{
-					std::cerr << "Invalid input format: " << options.formatInput << std::endl;
+					std::cerr << "Invalid input format: " << formatInput << std::endl;
 					return 1;
 				}
 				break;
 			// Define format for output file(s)
 			case 'o':
-				options.formatOutput = formatFromString(optarg);
-				if (options.formatOutput == DefaultFormat)
+				formatOutput = formatFromString(optarg);
+				if (formatOutput == DefaultFormat)
 				{
-					std::cerr << "Invalid output format: " << options.formatOutput << std::endl;
+					std::cerr << "Invalid output format: " << formatOutput << std::endl;
 					return 1;
 				}
 				break;
@@ -127,16 +135,32 @@ int main(int argc, char **argv)
 				return 1;
 		}
 	}
+	
+	int fileArgCount = argc - optind;
 
-	// Need at least 1 input arg
-	if (argc - optind < 1)
+	// Need at least 1 file arg for input
+	if (fileArgCount < 1)
 	{
-		PRINT_ERROR("No input files specified.");
+		PRINT_ERROR("No input file specified.");
+		optsInvalid = true;
+	}
+	
+	// If not in batch mode, need second arg for output
+	if (!batchMode && fileArgCount < 2)
+	{
+		PRINT_ERROR("No output file specified.");
+		optsInvalid = true;
+	}
+	
+	// If not in batch mode, should have no more than 2 file args
+	if (!batchMode && fileArgCount > 2)
+	{
+		PRINT_ERROR("Too many arguments given. Did you mean to use batch mode (-b)?");
 		optsInvalid = true;
 	}
 	
 	// Output format needs to be specified
-	if (options.formatOutput == DefaultFormat)
+	if (formatOutput == DefaultFormat)
 	{
 		PRINT_ERROR("No output format specified.");
 		optsInvalid = true;
@@ -150,9 +174,40 @@ int main(int argc, char **argv)
 	}
 	
 	// Get encoder ready for all input files
-	Encoder encoder(options.formatOutput, options.etc1quality);
+	Encoder encoder(formatOutput, etc1quality);
 	
-	// Loop through input files
+	if (printInfo)
+	{
+		return 0;
+	}
+	
+	if (!batchMode)
+	{
+		std::string inputFilePath = argv[optind];
+		std::string outputFilePath = argv[optind + 1];
+		try
+		{
+			std::cout << "Processing " << inputFilePath << " ..." << std::endl;
+			
+			Decoder decoder(inputFilePath, formatInput);
+			encoder.processDecodedData(decoder);
+			encoder.saveToFile(outputFilePath, useHeader);
+			
+			printf("[" CYAN "%s" RESET " -> " CYAN "%s" RESET "] " GREEN "%s\n" RESET,
+			       stringFromFormat(decoder.getPixelFormat()).c_str(),
+				   stringFromFormat(encoder.getEncodedFormat()).c_str(),
+				   outputFilePath.c_str()
+			);
+		}
+		catch(int e)
+		{
+			PRINT_ERROR("Failed to process file.");
+			return 1;
+		}
+		return 0;
+	}
+	
+	// Loop through input files (batch mode)
 	for (int i = optind; i < argc; i++)
 	{
 		std::string filePath = argv[i];
@@ -174,19 +229,19 @@ int main(int argc, char **argv)
 			fileNameNoExt = fileName.substr(0, lastDot);
 		
 		// Determine output file name
-		std::string ext = (options.formatOutput == PNG) ? ".png" : ".bin";
+		std::string ext = (formatOutput == PNG) ? ".png" : ".bin";
 		std::string outputFileName = fileNameNoExt + ext;
 		
 		try
 		{
 			std::cout << "Processing " << filePath << " ..." << std::endl;
-			std::string outputFilePath = (options.outputDir.empty() ? dirName : options.outputDir) + outputFileName;
+			std::string outputFilePath = (outputDir.empty() ? dirName : outputDir) + outputFileName;
 			
-			Decoder decoder(filePath, options.formatInput);
+			Decoder decoder(filePath, formatInput);
 			encoder.processDecodedData(decoder);
 			if (outputFileName == fileName)
 				outputFileName = fileNameNoExt + "." + stringFromFormat(encoder.getEncodedFormat()) + ext;
-			encoder.saveToFile(outputFilePath, options.useHeader);
+			encoder.saveToFile(outputFilePath, useHeader);
 			
 			printf("[" CYAN "%s" RESET " -> " CYAN "%s" RESET "] " GREEN "%s\n" RESET,
 			       stringFromFormat(decoder.getPixelFormat()).c_str(),
