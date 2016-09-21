@@ -1,9 +1,12 @@
 *.d
 *.o
 *.map
+*.gcda
+*.gcno
 3dstex
 
 # KDevelop
 .kdev4/
 *.kdev4
 
+*.bin

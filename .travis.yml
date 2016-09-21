@@ -25,9 +25,9 @@ before_install:
 
 script:
 - make -j4
+- make test -j4
 
 after_success:
-- make test
 - bash <(curl -s https://codecov.io/bash) -x gcov-6
 
 before_deploy:

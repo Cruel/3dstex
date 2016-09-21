@@ -26,7 +26,7 @@ $(TARGET): $(OFILES)
 	$(LD) $(OFILES) $(LDFLAGS) $(LIBS) -o $@
 	
 run: $(TARGET)
-	@bash -e test.sh > /dev/null
+	@bash -e test.sh
 	
 clean:
 	@rm -rf $(BUILD_DIR) $(TARGET)
