@@ -5,13 +5,16 @@
 
 ```
 Usage:
-  3dstex [options] files ...
+  ./3dstex [options] input output
+  ./3dstex -b [options] files ...
 
 Options:
   -r           Raw output without header. Header is added by default.
   -p           Print info of input files instead of encoding them.
   -h           Print this help information.
-  -d <dir>     Directory to output files. Defaults to directory of inputs.
+  -b           Batch mode. Converts all input files, gives them *.bin outputs.
+  -d <dir>     Directory to output files. Only for batch mode.
+               Defaults to the directory of inputs.
   -c <level>   Quality level for ETC1 compression:
                  1  - Low quality    (fast)
                  2  - Medium quality (default)
@@ -29,24 +32,24 @@ Options:
 
 ## Examples
 
-Convert all PNGs in current directory to ETC1(A4):
+Convert all PNGs in current directory to ETC1(A4) using batch mode:
 ```
-$ 3dstex -o auto-etc1 *.png
+$ 3dstex -bo auto-etc1 *.png
 ```
 
-Convert image to ETC1 in `output` directory using max quality compression (3):
+Convert image to ETC1 in `output` directory using batch mode and max quality compression (3):
 ```
-$ 3dstex -o etc1 -d output -c 3 image.png
+$ 3dstex -o etc1 -bd output -c 3 image.png
 ```
 
 Convert image to raw (no header) LA8:
 ```
-$ 3dstex image.jpg -ro la8
+$ 3dstex -ro la8 image.jpg texture.bin
 ```
 
 Convert ETC1A4 texture to RGBA4:
 ```
-$ 3dstex texture.bin -i etc1a4 -o rgba4
+$ 3dstex -i etc1a4 -o rgba4 input.bin output.bin
 ```
 
 ## Header
