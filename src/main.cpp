@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 		threadCount = 4;
 
 	// Parse options
-	while ((opt = getopt(argc, argv, "rphd:c:i:o:")) != -1)
+	while ((opt = getopt(argc, argv, "rphbd:c:i:o:")) != -1)
 	{
 		 switch (opt)
 		 {
