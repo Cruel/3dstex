@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 				{
 					etc1quality = std::stoi(optarg, nullptr, 10);
 					if (etc1quality < 0 || etc1quality > 3)
-						throw;
+						throw 0;
 				}
 				catch (int e)
 				{
