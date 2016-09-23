@@ -21,15 +21,16 @@ void Encoder::saveToFile(const std::string &filePath, bool useHeader)
 	{
 		stbi_write_png(filePath.c_str(), m_header.widthOriginal, m_header.heightOriginal,
 		               4, m_encodedData.data(), 0);
-		return;
 	}
-	
-	std::ofstream file(filePath, std::ios::binary | std::ios::trunc);
-	if (file.is_open())
+	else
 	{
-		if (useHeader)
-			file.write(reinterpret_cast<char*>(&m_header), sizeof(Header));
-		file.write(reinterpret_cast<char*>(&m_encodedData[0]), m_encodedData.size());
+		std::ofstream file(filePath, std::ios::binary | std::ios::trunc);
+		if (file.is_open())
+		{
+			if (useHeader)
+				file.write(reinterpret_cast<char*>(&m_header), sizeof(Header));
+			file.write(reinterpret_cast<char*>(&m_encodedData[0]), m_encodedData.size());
+		}
 	}
 }
 
@@ -77,7 +78,8 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 {
 	// Get the tiled data before converting color format.
 	std::vector<u8> data;
-	data.resize(m_header.width * m_header.height * 4);
+	int pixelCount = m_header.width * m_header.height;
+	data.resize(pixelCount * 4);
 	tileData(data.data(), decodedData.data(), 0, 0,
 	         m_header.widthOriginal, m_header.heightOriginal, m_header.width, m_header.height);
 	
@@ -94,7 +96,7 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 	// Loop through all pixels and convert them
 	int i;
 	if (m_formatUsed == RGB8)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			src++;
 			*dest8++ = *src++;
@@ -102,7 +104,7 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 			*dest8++ = *src++;
 		}
 	else if (m_formatUsed == RGBA5551)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			u16 A = Convert8To1(*src++);
 			u16 B = Convert8To5(*src++) << 1;
@@ -111,7 +113,7 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 			*dest16++ = R | G | B | A;
 		}
 	else if (m_formatUsed == RGB565)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			src++;
 			u16 B = Convert8To5(*src++);
@@ -120,7 +122,7 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 			*dest16++ = R | G | B;
 		}
 	else if (m_formatUsed == RGBA4)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			u16 A = Convert8To4(*src++);
 			u16 B = Convert8To4(*src++) << 4;
@@ -129,53 +131,53 @@ void Encoder::encode(const std::vector<u8> &decodedData)
 			*dest16++ = R | G | B | A;
 		}
 	else if (m_formatUsed == LA8)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			*dest8++ = *src++;
 			*dest8++ = ProcessBGR8ToL(src);
 		}
 	else if (m_formatUsed == HILO8)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			src += 2;
 			*dest8++ = *src++;
 			*dest8++ = *src++;
 		}
 	else if (m_formatUsed == L8)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			src++;
 			*dest8++ = ProcessBGR8ToL(src);
 		}
 	else if (m_formatUsed == A8)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			*dest8++ = *src;
 			src += 4;
 		}
 	else if (m_formatUsed == LA4)
-		for (i = 0; i < m_header.width * m_header.height; ++i)
+		for (i = 0; i < pixelCount; ++i)
 		{
 			u8 A = *src++;
 			u8 L = ProcessBGR8ToL(src);
-			*dest8++ = (A >> 4) | ((L >> 4) << 4);
+			*dest8++ = (A >> 4) | (L & 0xF0);
 		}
 	else if (m_formatUsed == L4)
-		for (i = 0; i < m_header.width * m_header.height / 2; ++i)
+		for (i = 0; i < pixelCount / 2; ++i)
 		{
 			// Pre-increment to skip alpha channel
 			u8 L1 = ProcessBGR8ToL(++src);
 			u8 L2 = ProcessBGR8ToL(++src);
-			*dest8++ = (L1 >> 4) | ((L2 >> 4) << 4);
+			*dest8++ = (L1 >> 4) | (L2 & 0xF0);
 		}
 	else if (m_formatUsed == A4)
-		for (i = 0; i < m_header.width * m_header.height / 2; ++i)
+		for (i = 0; i < pixelCount / 2; ++i)
 		{
-			u8 lo4 = *src >> 4;
+			u8 A1 = *src >> 4;
 			src += 4;
-			u8 hi4 = (*src >> 4) << 4;
+			u8 A2 = (*src & 0xF0);
 			src += 4;
-			*dest8++ = hi4 | lo4;
+			*dest8++ = A1 | A2;
 		}
 }
 
