@@ -33,12 +33,12 @@ $TARGET -bo png *.bin
 ! $TARGET arg1 &> /dev/null
 ! $TARGET arg1 arg2 &> /dev/null
 ! $TARGET arg1 arg2 arg3 &> /dev/null
-! $TARGET -bc0 arg1
-! $TARGET -bc4 arg1
-! $TARGET -Z arg1
-! $TARGET -bi fake arg1
-! $TARGET -bo fake arg1
-! $TARGET -bo png arg1
-! $TARGET -o png arg1 arg2
+! $TARGET -bc0 arg1 &> /dev/null
+! $TARGET -bc4 arg1 &> /dev/null
+! $TARGET -Z arg1 &> /dev/null
+! $TARGET -bi fake arg1 &> /dev/null
+! $TARGET -bo fake arg1 &> /dev/null
+! $TARGET -bo png arg1 &> /dev/null
+! $TARGET -o png arg1 arg2 &> /dev/null
 
 md5sum -c hash.md5
